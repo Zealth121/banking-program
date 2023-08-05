@@ -23,12 +23,18 @@ typedef struct{
     bank_account accounts[3];
 }bank_user;
 
-void bank_user_creation();
-void bank_user_login();
-void bank_account_creation(bank_user*);
-void bank_account_login();
+void bank_user_creation(FILE*);
+void bank_user_login(FILE*);
+void bank_account_creation(FILE*, bank_user*);
+void bank_account_login(FILE*);
 
 int main(){
+
+    FILE *fptr;
+    fptr = fopen("banking.txt", "r");
+    if(fptr == NULL){
+        fptr = fopen("banking.txt", "w");
+    }
 
     char response;
 
@@ -43,10 +49,10 @@ int main(){
 
         switch(response){
             case '1':
-                bank_user_creation();
+                bank_user_creation(fptr);
                 break;
             case '2':
-                bank_user_login();
+                bank_user_login(fptr);
                 break;
             case '3':
                 break;
@@ -57,32 +63,62 @@ int main(){
     }while(response != '3');
 
     printf("\nThank you for using Zealth bank!\n");
+    fclose(fptr);
     return 0;
 }
-void bank_user_creation(){
+void bank_user_creation(FILE* fptr){
 
     bank_user user;
     bank_user *pUser = &user;
     char response;
 
-    printf("\nWhat username would you like to use (max 30 characters): ");
+    printf("\nWhat username would you like to use (max 15 characters): ");
     scanf(" %c");
-    fgets(user.username, 30, stdin);
+    fgets(user.username, 15, stdin);
+    user.username[strlen(user.username)-1] = '\0';
 
     printf("What would you like your password to be (max 15 characters): ");
     scanf(" %c");
     fgets(user.password, 15, stdin);
+    user.password[strlen(user.password)-1] = '\0';
+
+    fptr = fopen("banking.txt", "a");
+    if(fptr == NULL){
+        printf("File can't be opened\n");
+    }
+
+    fprintf(fptr, "username:%s,password:%s\n", user.username, user.password);
 
     printf("would you like to set up an account now? (Y/N)");
     scanf(" %c", &response);
     if(response == 'Y' || response == 'y'){
-        bank_account_creation(pUser);
+        bank_account_creation(fptr, pUser);
     }
+    fclose(fptr);
 }
-void bank_user_login(){
+void bank_user_login(FILE* fptr){
+    
+    fptr = fopen("banking.txt", "r");
+    if(fptr == NULL){
+        printf("Unable to open file\n");
+    }
 
+    char username[15];
+    char password[15];
+
+    printf("What is your username: ");
+    scanf(" %c");
+    fgets(username, 15, stdin);
+    username[strlen(username)-1] = '\0';
+
+    printf("What is your password: ");
+    scanf(" %c");
+    fgets(password, 15, stdin);
+    password[strlen(password)-1] = '\0';
+
+    
 }
-void bank_account_creation(bank_user *pUser){
+void bank_account_creation(FILE* fptr, bank_user *pUser){
 
     bank_account account;
     bank_account *pAccount;
@@ -118,6 +154,6 @@ void bank_account_creation(bank_user *pUser){
         printf("You can only have 3 accounts\n");
     }
 }
-void bank_account_login(){
+void bank_account_login(FILE* fptr){
 
 }
