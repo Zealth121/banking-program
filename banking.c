@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 const int CHECKINGSACCOUNT = 1;
 const int SAVINGSACCOUNT = 2;
@@ -27,6 +28,7 @@ void bank_user_creation(FILE*);
 void bank_user_login(FILE*);
 void bank_account_creation(FILE*, bank_user*);
 void bank_account_login(FILE*);
+bool bank_user_exists(FILE*, bank_user*);
 
 int main(){
 
@@ -68,26 +70,31 @@ int main(){
 }
 void bank_user_creation(FILE* fptr){
 
-    bank_user user;
-    bank_user *pUser = &user;
-    char response;
-
-    printf("\nWhat username would you like to use (max 15 characters): ");
-    scanf(" %c");
-    fgets(user.username, 15, stdin);
-    user.username[strlen(user.username)-1] = '\0';
-
-    printf("What would you like your password to be (max 15 characters): ");
-    scanf(" %c");
-    fgets(user.password, 15, stdin);
-    user.password[strlen(user.password)-1] = '\0';
-
     fptr = fopen("banking.txt", "a");
     if(fptr == NULL){
         printf("File can't be opened\n");
     }
 
-    fprintf(fptr, "username:%s,password:%s\n", user.username, user.password);
+    bank_user user;
+    bank_user *pUser = &user;
+    char response;
+
+    do{
+        printf("\nWhat username would you like to use (max 15 characters): ");
+        scanf(" %c");
+        fgets(user.username, 15, stdin);
+        user.username[strlen(user.username)-1] = '\0';
+
+        printf("What would you like your password to be (max 15 characters): ");
+        scanf(" %c");
+        fgets(user.password, 15, stdin);
+        user.password[strlen(user.password)-1] = '\0';
+        if(bank_user_exists(fptr, pUser)){
+            printf("User already exists\n");
+        }
+    }while(bank_user_exists(fptr, pUser));
+
+    fprintf(fptr, "username:%s password:%s\n", user.username, user.password);
 
     printf("would you like to set up an account now? (Y/N)");
     scanf(" %c", &response);
@@ -156,4 +163,21 @@ void bank_account_creation(FILE* fptr, bank_user *pUser){
 }
 void bank_account_login(FILE* fptr){
 
+}
+bool bank_user_exists(FILE* fptr, bank_user *pUser){
+
+    fptr = fopen("banking.txt", "r");
+    if(fptr == NULL){
+        printf("Can not open file\n");
+    }
+
+    char username[15];
+    char temp[256];
+
+    char line[256];
+    while(fgets(line, sizeof(line), fptr) != NULL){
+        sscanf(line, "username:%s %s", &username, &temp);
+    }
+
+    return 1;
 }
