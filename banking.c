@@ -18,19 +18,34 @@ typedef struct{
 
 typedef struct{
 
-    char username[30];
+    char username[15];
     char password[15];
     int numberOfAccounts;
     bank_account accounts[3];
 }bank_user;
 
 void bank_user_creation(FILE*);
-void bank_user_login(FILE*);
+bank_user bank_user_login(FILE*);
 void bank_account_creation(FILE*, bank_user*);
 void bank_account_login(FILE*);
 bool bank_user_exists(FILE*, bank_user*);
 
 int main(){
+
+    /*
+                    TODO:  
+        WHEN TAKING IN USERNAMES OR PASSWORD AUTOMATICALLY REMOVE SPACES. CREATE A REMOVE SPACES FUNCTION
+                Allow users to create bank accounts
+                Create an interface for those that are logged in
+                Allow users to be able to retrieve bank account data
+                Allow users to deposit into their accounts
+                Allow users to withdrawl from accounts
+                Allow users to logout once logged in
+                Allow users to delete accounts or users
+
+        FINALLY REFACTOR CODE. MANY OF MY LOOPS COULD BE REFACTORED WITH ARGUMENTS. FOR EXAMPLE,
+        The loops that compare usernames or passwords...
+    */
 
     FILE *fptr;
     fptr = fopen("banking.txt", "r");
@@ -38,31 +53,40 @@ int main(){
         fptr = fopen("banking.txt", "w");
     }
 
-    char response;
+    bool loggedIn = 0;
+    bank_user currentUser;
 
+    bool logout = 0;
+    char response;
     printf("\nWelcome to Zealth bank!\n");
     do{
 
-        printf("\nWhat action would you like to take?\n");
-        printf("1. new bank user\n");
-        printf("2. user log in\n");
-        printf("3. close application\n");
-        scanf(" %c", &response);
+        if(!loggedIn){
+            printf("\nWhat action would you like to take?\n");
+            printf("1. new bank user\n");
+            printf("2. user log in\n");
+            printf("3. close application\n");
+            scanf(" %c", &response);
 
-        switch(response){
-            case '1':
-                bank_user_creation(fptr);
-                break;
-            case '2':
-                bank_user_login(fptr);
-                break;
-            case '3':
-                break;
-            default:
-                printf("You have not chosen a valid response\n");
-                break;
-        };
-    }while(response != '3');
+            switch(response){
+                case '1':
+                    bank_user_creation(fptr);
+                    break;
+                case '2':
+                    bank_user_login(fptr);
+                    break;
+                case '3':
+                    logout = 1;
+                    break;
+                default:
+                    printf("You have not chosen a valid response\n");
+                    break;
+            };
+        }else{
+            printf("Features not unlocked yet\n");
+            logout = 1;
+        }
+    }while(!logout);
 
     printf("\nThank you for using Zealth bank!\n");
     fclose(fptr);
@@ -106,27 +130,59 @@ void bank_user_creation(FILE* fptr){
     }
     fclose(fptr);
 }
-void bank_user_login(FILE* fptr){
+bank_user bank_user_login(FILE* fptr){
     
     fptr = fopen("banking.txt", "r");
     if(fptr == NULL){
         printf("Unable to open file\n");
     }
 
-    char username[15];
-    char password[15];
+    bank_user user;
 
-    printf("What is your username: ");
-    scanf(" %c");
-    fgets(username, 15, stdin);
-    username[strlen(username)-1] = '\0';
+    while(1){
+        printf("What is your username: ");
+        scanf(" %c");
+        fgets(user.username, 15, stdin);
+        user.username[strlen(user.username)-1] = '\0';
 
-    printf("What is your password: ");
-    scanf(" %c");
-    fgets(password, 15, stdin);
-    password[strlen(password)-1] = '\0';
+        printf("What is your password: ");
+        scanf(" %c");
+        fgets(user.password, 15, stdin);
+        user.password[strlen(user.password)-1] = '\0';
 
-    
+        bool usernameFound = 0;
+        char str[15];
+        char line[256];
+        while(fgets(line, sizeof(line), fptr) != NULL){
+            if(line[0] == 'u') {
+                sscanf(line, "username:%s", &str);
+                if(strlen(user.username) != strlen(str)) continue;
+
+                for(int i = 0; i <= strlen(user.username); i++){
+                    if(user.username[i] == '\0' && str[i] == '\0') usernameFound = 1;
+                    if(user.username[i] != str[i]) break;
+                }
+            } else if(line[0] == 'p' && usernameFound){
+
+                sscanf(line, "password:%s", &str);
+                if(strlen(user.password) != strlen(str)) continue;
+
+                for(int i = 0; i<= strlen(user.password); i++){
+                    if(user.password[i] == '\0' && str[i] == '\0'){
+                        // will create some sort of loop to retrieve bank data as well!
+                        while(line[0] != '}'){
+                            fgets(line, sizeof(line), fptr);
+                            if(line[0] == '}') break;
+                            printf("%s\n", line);
+                        }
+                        printf("You have logged in!\n");
+                        return user;
+                    }
+                    if(user.password[i] != str[i]) break;
+                }
+            }
+        } 
+    }
 }
 void bank_account_creation(FILE* fptr, bank_user *pUser){
 
@@ -181,6 +237,8 @@ bool bank_user_exists(FILE* fptr, bank_user *pUser){
         if(line[0] != 'u') continue;
 
         sscanf(line, "username:%s", &username);
+        if(strlen(pUser->username) != strlen(username)) continue;
+
         for(int i = 0; i <= strlen(username); i++){
             if(pUser->username[i] == '\0' && username[i] == '\0'){
                 return 1;
