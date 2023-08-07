@@ -177,7 +177,15 @@ bool bank_user_exists(FILE* fptr, bank_user *pUser){
     char line[256];
     while(fgets(line, sizeof(line), fptr) != NULL){
         sscanf(line, "username:%s %s", &username, &temp);
+        for(int i = 0; i <= strlen(username); i++){
+            if(pUser->username[i] == '\0' && username[i] == '\0'){
+                return 1;
+            }
+            if(pUser->username[i] != username[i]){
+                break;
+            }
+        }
     }
 
-    return 1;
+    return 0;
 }
