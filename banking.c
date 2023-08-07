@@ -94,7 +94,10 @@ void bank_user_creation(FILE* fptr){
         }
     }while(bank_user_exists(fptr, pUser));
 
-    fprintf(fptr, "username:%s password:%s\n", user.username, user.password);
+    fprintf(fptr, "{\n");
+    fprintf(fptr, "username:%s\n", user.username);
+    fprintf(fptr, "password:%s\n", user.password);
+    fprintf(fptr, "}\n");
 
     printf("would you like to set up an account now? (Y/N)");
     scanf(" %c", &response);
@@ -172,11 +175,12 @@ bool bank_user_exists(FILE* fptr, bank_user *pUser){
     }
 
     char username[15];
-    char temp[256];
 
     char line[256];
     while(fgets(line, sizeof(line), fptr) != NULL){
-        sscanf(line, "username:%s %s", &username, &temp);
+        if(line[0] != 'u') continue;
+
+        sscanf(line, "username:%s", &username);
         for(int i = 0; i <= strlen(username); i++){
             if(pUser->username[i] == '\0' && username[i] == '\0'){
                 return 1;
