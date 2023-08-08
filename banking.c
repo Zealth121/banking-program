@@ -29,6 +29,7 @@ bank_user bank_user_login(FILE*);
 void bank_account_creation(FILE*, bank_user*);
 void bank_account_login(FILE*);
 bool bank_user_exists(FILE*, bank_user*);
+void str_remove_spaces(char*);
 
 int main(){
 
@@ -93,11 +94,14 @@ void bank_user_creation(FILE* fptr){
         scanf(" %c");
         fgets(user.username, 15, stdin);
         user.username[strlen(user.username)-1] = '\0';
+        str_remove_spaces(&user.username[0]);
 
         printf("What would you like your password to be (max 15 characters): ");
         scanf(" %c");
         fgets(user.password, 15, stdin);
         user.password[strlen(user.password)-1] = '\0';
+        str_remove_spaces(&user.password[0]);
+
         if(bank_user_exists(fptr, pUser)){
             printf("User already exists\n");
         }
@@ -129,11 +133,13 @@ bank_user bank_user_login(FILE* fptr){
         scanf(" %c");
         fgets(user.username, 15, stdin);
         user.username[strlen(user.username)-1] = '\0';
+        str_remove_spaces(&user.username[0]);
 
         printf("What is your password: ");
         scanf(" %c");
         fgets(user.password, 15, stdin);
         user.password[strlen(user.password)-1] = '\0';
+        str_remove_spaces(&user.password[0]);
 
         bool usernameFound = 0;
         char str[15];
@@ -235,4 +241,17 @@ bool bank_user_exists(FILE* fptr, bank_user *pUser){
     }
 
     return 0;
+}
+void str_remove_spaces(char* str){
+    
+    int i = 0;
+    int spaces = 0;
+    while(str[i] != '\0'){
+        if(str[i] == ' '){
+            spaces++;
+        }
+
+        str[i] = str[i+spaces];
+        i++;
+    }
 }

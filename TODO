@@ -1,5 +1,4 @@
-                    TODO:  
-        WHEN TAKING IN USERNAMES OR PASSWORD AUTOMATICALLY REMOVE SPACES. CREATE A REMOVE SPACES FUNCTION
+                    TODO:
                 Allow users to create bank accounts
                 Create an interface for those that are logged in
                 Allow users to be able to retrieve bank account data
