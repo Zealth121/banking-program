@@ -32,21 +32,6 @@ bool bank_user_exists(FILE*, bank_user*);
 
 int main(){
 
-    /*
-                    TODO:  
-        WHEN TAKING IN USERNAMES OR PASSWORD AUTOMATICALLY REMOVE SPACES. CREATE A REMOVE SPACES FUNCTION
-                Allow users to create bank accounts
-                Create an interface for those that are logged in
-                Allow users to be able to retrieve bank account data
-                Allow users to deposit into their accounts
-                Allow users to withdrawl from accounts
-                Allow users to logout once logged in
-                Allow users to delete accounts or users
-
-        FINALLY REFACTOR CODE. MANY OF MY LOOPS COULD BE REFACTORED WITH ARGUMENTS. FOR EXAMPLE,
-        The loops that compare usernames or passwords...
-    */
-
     FILE *fptr;
     fptr = fopen("banking.txt", "r");
     if(fptr == NULL){
