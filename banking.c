@@ -44,7 +44,7 @@ int main(){
     bool loggedIn = 0;
     bank_user currentUser;
 
-    bool logout = 0;
+    bool quitApplication = 0;
     char response;
     printf("\nWelcome to Zealth bank!\n");
     do{
@@ -64,17 +64,43 @@ int main(){
                     bank_user_login(&loggedIn);
                     break;
                 case '3':
-                    logout = 1;
+                    quitApplication = 1;
                     break;
                 default:
                     printf("You have not chosen a valid response\n");
                     break;
             };
         }else{
-            printf("Features not unlocked yet\n");
-            logout = 1;
+            printf("\nWhat action would you like to take %s?\n", currentUser.username);
+            printf("1. retrieve bank account data\n");
+            printf("2. deposit into account\n");
+            printf("3. deposit into account\n");
+            printf("4. logout\n");
+            printf("5. close application\n");
+            scanf(" %c", &response);
+
+            switch(response){
+                case '1':
+
+                    break;
+                case '2':
+
+                    break;
+                case '3':
+
+                    break;
+                case '4':
+                    loggedIn = 0;
+                    break;
+                case '5':
+                    quitApplication = 1;
+                    break;
+                default:
+                    printf("You have not chosen a valid response\n");
+                    break;
+            }
         }
-    }while(!logout);
+    }while(!quitApplication);
 
     printf("\nThank you for using Zealth bank!\n");
     fclose(fptr);
@@ -89,7 +115,6 @@ void bank_user_creation(){
 
     bank_user user;
     user.numberOfAccounts = 0;
-    char response;
 
     do{
         printf("\nWhat username would you like to use (max 15 characters): ");
@@ -114,13 +139,8 @@ void bank_user_creation(){
     fprintf(fptr, "password:%s\n", user.password);
     fprintf(fptr, "}\n");
 
-    printf("would you like to set up an account now? (Y/N)");
-    scanf(" %c", &response);
-    if(response == 'Y' || response == 'y'){
-        fclose(fptr);
-        bank_account_creation(&user);
-    }
     fclose(fptr);
+    bank_account_creation(&user);
 }
 bank_user bank_user_login(bool* loggedIn){
     
@@ -163,14 +183,20 @@ bank_user bank_user_login(bool* loggedIn){
 
                 for(int i = 0; i<= strlen(user.password); i++){
                     if(user.password[i] == '\0' && str[i] == '\0'){
-                        // will create some sort of loop to retrieve bank data as well!
+                        int count;
                         while(line[0] != '}'){
                             fgets(line, sizeof(line), fptr);
                             if(line[0] == '}') break;
-                            printf("%s\n", line);
+                            if(line[0] == 't'){
+                                count++;
+                                printf(line);
+                                // sscanf(line, "type:%i pin:%i rate:%.2lf balance:%.2lf", user.accounts[count].typeOfAccount, 
+                                // user.accounts[count].accountPin, user.accounts[count].growthRate, user.accounts[count].accountBalance);
+                            }
                         }
                         *loggedIn = 1;
                         printf("You have logged in!\n");
+                        fclose(fptr);
                         return user;
                     }
                     if(user.password[i] != str[i]) break;
@@ -182,6 +208,7 @@ bank_user bank_user_login(bool* loggedIn){
         printf("Would you like to go back to the main menu? (Y/N): ");
         scanf(" %c", &response);
         if(response == 'Y' || response == 'y') {
+            fclose(fptr);
             return user;
         }
     }
@@ -246,6 +273,7 @@ void bank_user_add_account(bank_user* pUser, bank_account* pAccount){
     if(temp == NULL){
         printf("temp file can't be created");
     }
+    fclose(temp);
     temp = fopen("temp.txt", "a");
 
     char c;
@@ -262,9 +290,12 @@ void bank_user_add_account(bank_user* pUser, bank_account* pAccount){
         }
     }
 
+    fclose(fptr);
     fptr = fopen("banking.txt", "w");
+    fclose(fptr);
     fptr = fopen("banking.txt", "a");
 
+    fclose(temp);
     temp = fopen("temp.txt", "r");
 
     while((c = fgetc(temp)) != EOF){
@@ -273,7 +304,11 @@ void bank_user_add_account(bank_user* pUser, bank_account* pAccount){
 
     fclose(fptr);
     fclose(temp);
-    remove("temp.txt");
+    if(remove("temp.txt") == 0){
+        printf("removed successfully\n");
+    }else{
+        printf("couldn't remove file\n");
+    }
 }
 bool bank_user_exists(bank_user *pUser){
 
@@ -292,11 +327,15 @@ bool bank_user_exists(bank_user *pUser){
         if(strlen(pUser->username) != strlen(username)) continue;
 
         for(int i = 0; i <= strlen(username); i++){
-            if(pUser->username[i] == '\0' && username[i] == '\0') return 1;
+            if(pUser->username[i] == '\0' && username[i] == '\0'){
+                fclose(fptr);
+                return 1;
+            }
             if(pUser->username[i] != username[i]) break;
         }
     }
 
+    fclose(fptr);
     return 0;
 }
 void str_remove_spaces(char* str){
