@@ -1,8 +1,6 @@
                     TODO:
-                Allow users to be able to retrieve bank account data
                 Allow users to deposit into their accounts
                 Allow users to withdrawl from accounts
-                Allow users to logout once logged in
                 Allow users to delete accounts or users
 
         FINALLY REFACTOR CODE. MANY OF MY LOOPS COULD BE REFACTORED WITH ARGUMENTS. FOR EXAMPLE,
