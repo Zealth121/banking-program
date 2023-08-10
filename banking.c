@@ -24,13 +24,14 @@ typedef struct{
     bank_account accounts[3];
 }bank_user;
 
-void bank_user_creation(FILE*);
-bank_user bank_user_login(FILE*, bool*);
-void bank_account_creation(FILE*, bank_user*);
-void bank_account_login(FILE*);
-void bank_user_add_account(FILE*, bank_user*, bank_account*);
-bool bank_user_exists(FILE*, bank_user*);
+void bank_user_creation();
+bank_user bank_user_login(bool*);
+void bank_account_creation(bank_user*);
+void bank_account_login();
+void bank_user_add_account(bank_user*, bank_account*);
+bool bank_user_exists(bank_user*);
 void str_remove_spaces(char*);
+int file_find_line_number(bank_user*);
 
 int main(){
 
@@ -57,10 +58,10 @@ int main(){
 
             switch(response){
                 case '1':
-                    bank_user_creation(fptr);
+                    bank_user_creation();
                     break;
                 case '2':
-                    bank_user_login(fptr, &loggedIn);
+                    bank_user_login(&loggedIn);
                     break;
                 case '3':
                     logout = 1;
@@ -79,9 +80,9 @@ int main(){
     fclose(fptr);
     return 0;
 }
-void bank_user_creation(FILE* fptr){
+void bank_user_creation(){
 
-    fptr = fopen("banking.txt", "a");
+    FILE* fptr = fopen("banking.txt", "a");
     if(fptr == NULL){
         printf("File can't be opened\n");
     }
@@ -103,10 +104,10 @@ void bank_user_creation(FILE* fptr){
         user.password[strlen(user.password)-1] = '\0';
         str_remove_spaces(&user.password[0]);
 
-        if(bank_user_exists(fptr, &user)){
+        if(bank_user_exists(&user)){
             printf("User already exists\n");
         }
-    }while(bank_user_exists(fptr, &user));
+    }while(bank_user_exists(&user));
 
     fprintf(fptr, "{\n");
     fprintf(fptr, "username:%s\n", user.username);
@@ -117,13 +118,13 @@ void bank_user_creation(FILE* fptr){
     scanf(" %c", &response);
     if(response == 'Y' || response == 'y'){
         fclose(fptr);
-        bank_account_creation(fptr, &user);
+        bank_account_creation(&user);
     }
     fclose(fptr);
 }
-bank_user bank_user_login(FILE* fptr, bool* loggedIn){
+bank_user bank_user_login(bool* loggedIn){
     
-    fptr = fopen("banking.txt", "r");
+    FILE* fptr = fopen("banking.txt", "r");
     if(fptr == NULL){
         printf("Unable to open file\n");
     }
@@ -185,7 +186,7 @@ bank_user bank_user_login(FILE* fptr, bool* loggedIn){
         }
     }
 }
-void bank_account_creation(FILE* fptr, bank_user *pUser){
+void bank_account_creation(bank_user *pUser){
 
     bank_account account;
     int response;
@@ -215,7 +216,7 @@ void bank_account_creation(FILE* fptr, bank_user *pUser){
                 break;
             default:
                 printf("not a valid option\n");
-                bank_account_creation(fptr, pUser);
+                bank_account_creation(pUser);
                 break;
         };
 
@@ -226,7 +227,7 @@ void bank_account_creation(FILE* fptr, bank_user *pUser){
 
         printf("typeOfAccount: %i, growthRate: %lf, accountPin: %i\n", account.typeOfAccount, account.growthRate, account.accountPin);
 
-        bank_user_add_account(fptr, pUser, &account);
+        bank_user_add_account(pUser, &account);
     }else{
         printf("You can only have 3 accounts\n");
     }
@@ -234,9 +235,9 @@ void bank_account_creation(FILE* fptr, bank_user *pUser){
 void bank_account_login(FILE* fptr){
 
 }
-void bank_user_add_account(FILE* fptr, bank_user* pUser, bank_account* pAccount){
+void bank_user_add_account(bank_user* pUser, bank_account* pAccount){
 
-    fptr = fopen("banking.txt", "r");
+    FILE* fptr = fopen("banking.txt", "r");
     if(fptr == NULL){
         printf("File can't be opened\n");
     }
@@ -245,28 +246,38 @@ void bank_user_add_account(FILE* fptr, bank_user* pUser, bank_account* pAccount)
     if(temp == NULL){
         printf("temp file can't be created");
     }
-    fclose(temp);
     temp = fopen("temp.txt", "a");
 
     char c;
+    int lineNumber = file_find_line_number(pUser);
+    int count = 1;
     while((c = fgetc(fptr)) != EOF){
+        if(c == '\n') count++;
         fprintf(temp, "%c", c);
+
+        if(count == lineNumber){
+            fprintf(temp, "type:%i pin:%i rate:%.2lf balance:%.2lf\n", pAccount->typeOfAccount, pAccount->accountPin, 
+            pAccount->growthRate, pAccount->accountBalance);
+            count++;
+        }
     }
 
-    fclose(temp);
+    fptr = fopen("banking.txt", "w");
+    fptr = fopen("banking.txt", "a");
+
     temp = fopen("temp.txt", "r");
 
     while((c = fgetc(temp)) != EOF){
-        printf("%c", c);
+        fprintf(fptr, "%c", c);
     }
 
     fclose(fptr);
     fclose(temp);
     remove("temp.txt");
 }
-bool bank_user_exists(FILE* fptr, bank_user *pUser){
+bool bank_user_exists(bank_user *pUser){
 
-    fptr = fopen("banking.txt", "r");
+    FILE* fptr = fopen("banking.txt", "r");
     if(fptr == NULL){
         printf("Can not open file\n");
     }
@@ -297,4 +308,30 @@ void str_remove_spaces(char* str){
         str[i] = str[i+spaces];
         i++;
     }
+}
+int file_find_line_number(bank_user* pUser){
+
+    FILE* fptr = fopen("banking.txt", "r");
+    if(fptr == NULL){
+        printf("Can't open file\n");
+    }
+
+    char username[15];
+
+    int count;
+    char line[256];
+    while(fgets(line, sizeof(line), fptr) != NULL){
+        count++;
+        if(line[0] == 'u'){
+            sscanf(line, "username:%s", &username);
+        }
+
+        for(int i = 0; i <= strlen(pUser->username); i++){
+            if(pUser->username[i] == '\0' && username[i] == '\0') return count + 2;
+            if(pUser->username[i] != username[i]) break;
+        }
+    }
+
+    return -1;
+    fclose(fptr);
 }
