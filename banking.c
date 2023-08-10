@@ -26,10 +26,11 @@ typedef struct{
 
 void bank_user_creation();
 bank_user bank_user_login(bool*);
-void bank_account_creation(bank_user*);
-void bank_account_login();
 void bank_user_add_account(bank_user*, bank_account*);
 bool bank_user_exists(bank_user*);
+void bank_account_creation(bank_user*);
+void bank_account_login();
+double bank_account_get_balance(bank_user*);
 void str_remove_spaces(char*);
 int file_find_line_number(bank_user*);
 
@@ -72,16 +73,16 @@ int main(){
             };
         }else{
             printf("\nWhat action would you like to take %s?\n", currentUser.username);
-            printf("1. retrieve bank account data\n");
+            printf("1. retrieve bank account balance\n");
             printf("2. deposit into account\n");
-            printf("3. deposit into account\n");
+            printf("3. withdrawl into account\n");
             printf("4. logout\n");
             printf("5. close application\n");
             scanf(" %c", &response);
 
             switch(response){
                 case '1':
-
+                        printf("Account Balance: %.2lf\n", bank_account_get_balance(&currentUser));
                     break;
                 case '2':
 
@@ -183,15 +184,18 @@ bank_user bank_user_login(bool* loggedIn){
 
                 for(int i = 0; i<= strlen(user.password); i++){
                     if(user.password[i] == '\0' && str[i] == '\0'){
-                        int count;
+                        int count = 0;
                         while(line[0] != '}'){
                             fgets(line, sizeof(line), fptr);
                             if(line[0] == '}') break;
                             if(line[0] == 't'){
+                                bank_account account;
+
+                                sscanf(line, "type:%i pin:%i rate:%lf balance:%lf", &account.typeOfAccount, 
+                                &account.accountPin, &account.growthRate, &account.accountBalance);
+                                
+                                user.accounts[count] = account;
                                 count++;
-                                printf(line);
-                                // sscanf(line, "type:%i pin:%i rate:%.2lf balance:%.2lf", user.accounts[count].typeOfAccount, 
-                                // user.accounts[count].accountPin, user.accounts[count].growthRate, user.accounts[count].accountBalance);
                             }
                         }
                         *loggedIn = 1;
@@ -212,55 +216,6 @@ bank_user bank_user_login(bool* loggedIn){
             return user;
         }
     }
-}
-void bank_account_creation(bank_user *pUser){
-
-    bank_account account;
-    int response;
-
-    printf("\nYou currently have %i accounts\n", pUser->numberOfAccounts);
-    if(pUser->numberOfAccounts <= 3){
-        printf("You can have up to 3 accounts\n");
-
-        printf("\nWhat type of account will this be?\n");
-        printf("1. Checkings account (0%% yearly growth rate)\n");
-        printf("2. Savings account (1%% yearly growth rate)\n");
-        printf("3. Growth savings account (2%% yearly growth rate)\n");
-
-        scanf(" %i", &response);
-        switch(response){
-            case 1:
-                account.typeOfAccount = CHECKINGSACCOUNT;
-                account.growthRate = 0.00;
-                break;
-            case 2:
-                account.typeOfAccount = SAVINGSACCOUNT;
-                account.growthRate = 0.01;
-                break;
-            case 3:
-                account.typeOfAccount = GROWTHACCOUNT;
-                account.growthRate = 0.02;
-                break;
-            default:
-                printf("not a valid option\n");
-                bank_account_creation(pUser);
-                break;
-        };
-
-        account.accountBalance = 0.00;
-
-        printf("create a 4 digit account pin: ");
-        scanf(" %i", &account.accountPin);
-
-        printf("typeOfAccount: %i, growthRate: %lf, accountPin: %i\n", account.typeOfAccount, account.growthRate, account.accountPin);
-
-        bank_user_add_account(pUser, &account);
-    }else{
-        printf("You can only have 3 accounts\n");
-    }
-}
-void bank_account_login(FILE* fptr){
-
 }
 void bank_user_add_account(bank_user* pUser, bank_account* pAccount){
 
@@ -337,6 +292,59 @@ bool bank_user_exists(bank_user *pUser){
 
     fclose(fptr);
     return 0;
+}
+void bank_account_creation(bank_user *pUser){
+
+    bank_account account;
+    int response;
+
+    printf("\nYou currently have %i accounts\n", pUser->numberOfAccounts);
+    if(pUser->numberOfAccounts <= 3){
+        printf("You can have up to 3 accounts\n");
+
+        printf("\nWhat type of account will this be?\n");
+        printf("1. Checkings account (0%% yearly growth rate)\n");
+        printf("2. Savings account (1%% yearly growth rate)\n");
+        printf("3. Growth savings account (2%% yearly growth rate)\n");
+
+        scanf(" %i", &response);
+        switch(response){
+            case 1:
+                account.typeOfAccount = CHECKINGSACCOUNT;
+                account.growthRate = 0.00;
+                break;
+            case 2:
+                account.typeOfAccount = SAVINGSACCOUNT;
+                account.growthRate = 0.01;
+                break;
+            case 3:
+                account.typeOfAccount = GROWTHACCOUNT;
+                account.growthRate = 0.02;
+                break;
+            default:
+                printf("not a valid option\n");
+                bank_account_creation(pUser);
+                break;
+        };
+
+        account.accountBalance = 0.00;
+
+        printf("create a 4 digit account pin: ");
+        scanf(" %i", &account.accountPin);
+
+        printf("typeOfAccount: %i, growthRate: %lf, accountPin: %i\n", account.typeOfAccount, account.growthRate, account.accountPin);
+
+        bank_user_add_account(pUser, &account);
+    }else{
+        printf("You can only have 3 accounts\n");
+    }
+}
+void bank_account_login(FILE* fptr){
+
+}
+double bank_account_get_balance(bank_user* pUser){
+
+    return pUser->accounts[0].accountBalance;
 }
 void str_remove_spaces(char* str){
     
