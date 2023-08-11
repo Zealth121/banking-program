@@ -21,7 +21,7 @@ typedef struct{
     char username[15];
     char password[15];
     int numberOfAccounts;
-    bank_account accounts[3];
+    bank_account account;
 }bank_user;
 
 void bank_user_creation();
@@ -29,10 +29,12 @@ bank_user bank_user_login(bool*);
 void bank_user_add_account(bank_user*, bank_account*);
 bool bank_user_exists(bank_user*);
 void bank_account_creation(bank_user*);
-void bank_account_login();
 double bank_account_get_balance(bank_user*);
+double bank_account_deposit(bank_user*);
+double bank_account_withdrawl(bank_user*);
 void str_remove_spaces(char*);
 int file_find_line_number(bank_user*);
+void file_change_bank_balance(bank_user*);
 
 int main(){
 
@@ -62,7 +64,7 @@ int main(){
                     bank_user_creation();
                     break;
                 case '2':
-                    bank_user_login(&loggedIn);
+                    currentUser = bank_user_login(&loggedIn);
                     break;
                 case '3':
                     quitApplication = 1;
@@ -82,13 +84,13 @@ int main(){
 
             switch(response){
                 case '1':
-                        printf("Account Balance: %.2lf\n", bank_account_get_balance(&currentUser));
+                        printf("\nAccount Balance: %.2lf\n", bank_account_get_balance(&currentUser));
                     break;
                 case '2':
-
+                        bank_account_deposit(&currentUser);
                     break;
                 case '3':
-
+                        bank_account_withdrawl(&currentUser);
                     break;
                 case '4':
                     loggedIn = 0;
@@ -184,7 +186,6 @@ bank_user bank_user_login(bool* loggedIn){
 
                 for(int i = 0; i<= strlen(user.password); i++){
                     if(user.password[i] == '\0' && str[i] == '\0'){
-                        int count = 0;
                         while(line[0] != '}'){
                             fgets(line, sizeof(line), fptr);
                             if(line[0] == '}') break;
@@ -194,8 +195,7 @@ bank_user bank_user_login(bool* loggedIn){
                                 sscanf(line, "type:%i pin:%i rate:%lf balance:%lf", &account.typeOfAccount, 
                                 &account.accountPin, &account.growthRate, &account.accountBalance);
                                 
-                                user.accounts[count] = account;
-                                count++;
+                                user.account = account;
                             }
                         }
                         *loggedIn = 1;
@@ -259,11 +259,7 @@ void bank_user_add_account(bank_user* pUser, bank_account* pAccount){
 
     fclose(fptr);
     fclose(temp);
-    if(remove("temp.txt") == 0){
-        printf("removed successfully\n");
-    }else{
-        printf("couldn't remove file\n");
-    }
+    remove("temp.txt");
 }
 bool bank_user_exists(bank_user *pUser){
 
@@ -298,53 +294,78 @@ void bank_account_creation(bank_user *pUser){
     bank_account account;
     int response;
 
-    printf("\nYou currently have %i accounts\n", pUser->numberOfAccounts);
-    if(pUser->numberOfAccounts <= 3){
-        printf("You can have up to 3 accounts\n");
+    printf("\nWhat type of account will this be?\n");
+    printf("1. Checkings account (0%% yearly growth rate)\n");
+    printf("2. Savings account (1%% yearly growth rate)\n");
+    printf("3. Growth savings account (2%% yearly growth rate)\n");
 
-        printf("\nWhat type of account will this be?\n");
-        printf("1. Checkings account (0%% yearly growth rate)\n");
-        printf("2. Savings account (1%% yearly growth rate)\n");
-        printf("3. Growth savings account (2%% yearly growth rate)\n");
+    scanf(" %i", &response);
+    switch(response){
+        case 1:
+            account.typeOfAccount = CHECKINGSACCOUNT;
+            account.growthRate = 0.00;
+            break;
+        case 2:
+            account.typeOfAccount = SAVINGSACCOUNT;
+            account.growthRate = 0.01;
+            break;
+        case 3:
+            account.typeOfAccount = GROWTHACCOUNT;
+            account.growthRate = 0.02;
+            break;
+        default:
+            printf("not a valid option\n");
+            bank_account_creation(pUser);
+            break;
+    };
 
-        scanf(" %i", &response);
-        switch(response){
-            case 1:
-                account.typeOfAccount = CHECKINGSACCOUNT;
-                account.growthRate = 0.00;
-                break;
-            case 2:
-                account.typeOfAccount = SAVINGSACCOUNT;
-                account.growthRate = 0.01;
-                break;
-            case 3:
-                account.typeOfAccount = GROWTHACCOUNT;
-                account.growthRate = 0.02;
-                break;
-            default:
-                printf("not a valid option\n");
-                bank_account_creation(pUser);
-                break;
-        };
+    account.accountBalance = 0.00;
 
-        account.accountBalance = 0.00;
+    printf("create a 4 digit account pin: ");
+    scanf(" %i", &account.accountPin);
 
-        printf("create a 4 digit account pin: ");
-        scanf(" %i", &account.accountPin);
+    printf("typeOfAccount: %i, growthRate: %lf, accountPin: %i\n", account.typeOfAccount, account.growthRate, account.accountPin);
 
-        printf("typeOfAccount: %i, growthRate: %lf, accountPin: %i\n", account.typeOfAccount, account.growthRate, account.accountPin);
-
-        bank_user_add_account(pUser, &account);
-    }else{
-        printf("You can only have 3 accounts\n");
-    }
-}
-void bank_account_login(FILE* fptr){
-
+    bank_user_add_account(pUser, &account);
 }
 double bank_account_get_balance(bank_user* pUser){
+    return pUser->account.accountBalance;
+}
+double bank_account_deposit(bank_user* pUser){
 
-    return pUser->accounts[0].accountBalance;
+    double amount;
+    char str[10];
+    printf("How much would you like to deposit into your account: $");
+    scanf(" %c");
+    fgets(str, 10, stdin);
+    sscanf(str, "%lf", &amount);
+
+    pUser->account.accountBalance += amount;
+    file_change_bank_balance(pUser);
+
+    return 0.00;
+}
+double bank_account_withdrawl(bank_user* pUser){
+
+    double amount;
+    char str[10];
+    do{
+        printf("How much do you want to withdrawl: $");
+        scanf(" %c");
+        fgets(str, 10, stdin);
+        sscanf(str, "%lf", &amount);
+
+        if(pUser->account.accountBalance < amount){
+            printf("\nInsufficient funds\n");
+        } else{
+            break;
+        }
+    }while(1);
+
+    pUser->account.accountBalance -= amount;
+    file_change_bank_balance(pUser);
+
+    return 0.00;
 }
 void str_remove_spaces(char* str){
     
@@ -381,4 +402,69 @@ int file_find_line_number(bank_user* pUser){
 
     return -1;
     fclose(fptr);
+}
+void file_change_bank_balance(bank_user* pUser){
+
+    FILE* fptr = fopen("banking.txt", "r");
+    if(fptr == NULL){
+        printf("can not open file\n");
+    }
+
+    FILE* temp = fopen("temp.txt", "w");
+    fclose(temp);
+    temp = fopen("temp.txt", "a");
+    if(temp == NULL){
+        printf("Could not open temp file\n");
+    }
+
+    bank_account account;
+
+    bool writeLine = 1;
+    bool foundUser = 0;
+    char username[15];
+    char line[256];
+    while(fgets(line, sizeof(line), fptr) != NULL){
+        if(line[0] == 'u' && foundUser == 0){
+            sscanf(line, "username:%s", &username);
+
+            for(int i = 0; i <= strlen(username); i++){
+                if(username[i] == '\0' && pUser->username[i] == '\0'){
+                    foundUser = 1;
+                } else if(username[i] != pUser->username[i]){
+                    break;
+                }
+            }
+        } else if(line[0] == 't' && foundUser == 1){
+            sscanf(line, "type:%i pin:%i rate:%lf balance:%lf", &account.typeOfAccount,
+            &account.accountPin, &account.growthRate, &account.accountBalance);
+
+            account.accountBalance = pUser->account.accountBalance;
+
+            fprintf(temp, "type:%i pin:%i rate:%.2lf balance:%.2lf\n", account.typeOfAccount,
+            account.accountPin, account.growthRate, account.accountBalance);
+            writeLine = 0;
+            foundUser = 0;
+        }
+        if(writeLine == 1){
+            fprintf(temp, "%s", line);
+        }
+        writeLine = 1;
+    }
+
+    fclose(temp);
+    temp = fopen("temp.txt", "r");
+
+    fclose(fptr);
+    fptr = fopen("banking.txt", "w");
+    fclose(fptr);
+    fptr = fopen("banking.txt", "a");
+
+    char c;
+    while((c = fgetc(temp)) != EOF){
+        fprintf(fptr, "%c", c);
+    }
+
+    fclose(fptr);
+    fclose(temp);
+    remove("temp.txt");
 }
