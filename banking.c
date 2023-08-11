@@ -182,9 +182,16 @@ bank_user bank_user_login(bool* loggedIn){
             } else if(line[0] == 'p' && usernameFound){
 
                 sscanf(line, "password:%s", &str);
-                if(strlen(user.password) != strlen(str)) continue;
+                if(strlen(user.password) != strlen(str)) {
+                    usernameFound = 0;
+                    break;
+                }
 
                 for(int i = 0; i<= strlen(user.password); i++){
+                    if(user.password[i] != str[i]){
+                        usernameFound = 0;
+                        break;
+                    }
                     if(user.password[i] == '\0' && str[i] == '\0'){
                         while(line[0] != '}'){
                             fgets(line, sizeof(line), fptr);
@@ -203,7 +210,6 @@ bank_user bank_user_login(bool* loggedIn){
                         fclose(fptr);
                         return user;
                     }
-                    if(user.password[i] != str[i]) break;
                 }
             }
         }
