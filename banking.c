@@ -8,7 +8,7 @@ const int CHECKINGSACCOUNT = 1;
 const int SAVINGSACCOUNT = 2;
 const int GROWTHACCOUNT = 3;
 
-typedef struct{
+typedef struct bank_account{
 
     int typeOfAccount;
     int accountPin;
@@ -16,7 +16,7 @@ typedef struct{
     double growthRate;
 }bank_account;
 
-typedef struct{
+typedef struct bank_user{
 
     char username[15];
     char password[15];
@@ -77,7 +77,7 @@ int main(){
             printf("\nWhat action would you like to take %s?\n", currentUser.username);
             printf("1. retrieve bank account balance\n");
             printf("2. deposit into account\n");
-            printf("3. withdrawl into account\n");
+            printf("3. withdrawl from account\n");
             printf("4. logout\n");
             printf("5. close application\n");
             scanf(" %c", &response);
@@ -121,13 +121,13 @@ void bank_user_creation(){
 
     do{
         printf("\nWhat username would you like to use (max 15 characters): ");
-        scanf(" %c");
+        scanf(" ");
         fgets(user.username, 15, stdin);
         user.username[strlen(user.username)-1] = '\0';
         str_remove_spaces(&user.username[0]);
 
         printf("What would you like your password to be (max 15 characters): ");
-        scanf(" %c");
+        scanf(" ");
         fgets(user.password, 15, stdin);
         user.password[strlen(user.password)-1] = '\0';
         str_remove_spaces(&user.password[0]);
@@ -156,13 +156,13 @@ bank_user bank_user_login(bool* loggedIn){
 
     while(1){
         printf("What is your username: ");
-        scanf(" %c");
+        scanf(" ");
         fgets(user.username, 15, stdin);
         user.username[strlen(user.username)-1] = '\0';
         str_remove_spaces(&user.username[0]);
 
         printf("What is your password: ");
-        scanf(" %c");
+        scanf(" ");
         fgets(user.password, 15, stdin);
         user.password[strlen(user.password)-1] = '\0';
         str_remove_spaces(&user.password[0]);
@@ -216,7 +216,7 @@ bank_user bank_user_login(bool* loggedIn){
         char response;
         printf("\nUsername or Password incorrect\n");
         printf("Would you like to go back to the main menu? (Y/N): ");
-        scanf(" %c", &response);
+        scanf(" ", &response);
         if(response == 'Y' || response == 'y') {
             fclose(fptr);
             return user;
@@ -298,7 +298,7 @@ bool bank_user_exists(bank_user *pUser){
 void bank_account_creation(bank_user *pUser){
 
     bank_account account;
-    int response;
+    int response = -1;
 
     printf("\nWhat type of account will this be?\n");
     printf("1. Checkings account (0%% yearly growth rate)\n");
@@ -342,7 +342,7 @@ double bank_account_deposit(bank_user* pUser){
     double amount;
     char str[10];
     printf("How much would you like to deposit into your account: $");
-    scanf(" %c");
+    scanf(" ");
     fgets(str, 10, stdin);
     sscanf(str, "%lf", &amount);
 
@@ -357,7 +357,7 @@ double bank_account_withdrawl(bank_user* pUser){
     char str[10];
     do{
         printf("How much do you want to withdrawl: $");
-        scanf(" %c");
+        scanf(" ");
         fgets(str, 10, stdin);
         sscanf(str, "%lf", &amount);
 
@@ -392,7 +392,7 @@ int file_find_line_number(bank_user* pUser){
 
     char username[15];
 
-    int count;
+    int count = 0;
     char line[256];
     while(fgets(line, sizeof(line), fptr) != NULL){
         count++;
